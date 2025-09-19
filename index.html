@@ -111,6 +111,7 @@
 
         const STORAGE_KEY = 'anipixelSearchHistory';
         let navigationHistory = [];
+        let countdownInterval = null; // To hold the countdown timer
 
         // --- View Management ---
         function showLoader(text = 'Loading...') {
@@ -167,7 +168,7 @@
               characters(sort: [ROLE, RELEVANCE], perPage: 15) { edges { role node { id name { full } image { large } } } }
               staff(sort: [RELEVANCE, ROLE], perPage: 10) { edges { role node { id name { full } image { large } } } }
               studios(isMain: true) { nodes { name isAnimationStudio } } rankings { rank type allTime context } stats { statusDistribution { status amount } } siteUrl
-              nextAiringEpisode { episode }
+              nextAiringEpisode { episode airingAt }
             }`;
         
         const homepageQuery = `query ($season: MediaSeason, $seasonYear: Int) { 
@@ -219,6 +220,9 @@
         }
         
         function renderDetailView(content) {
+            // Clear any previous countdown to prevent memory leaks
+            if (countdownInterval) clearInterval(countdownInterval);
+
             const title = content.title.english || content.title.romaji;
             const isAnime = content.type === 'ANIME';
             document.title = `${title} - AniPixel`;
@@ -257,8 +261,11 @@
                     <li class="flex justify-between py-2 border-b border-gray-700"><strong>Volumes:</strong> <span>${content.volumes || 'N/A'}</span></li>
                 `;
             }
+            
+            const countdownHTML = isAnime && content.status === 'RELEASING' && content.nextAiringEpisode
+                ? `<li class="flex justify-between py-2 border-b border-gray-700"><strong>Next Episode:</strong> <span id="countdown-timer" class="font-mono text-green-400"></span></li>`
+                : '';
 
-            // FIXED: Back button styling is now using 'fixed' for robust positioning
             detailView.innerHTML = `
                 <div class="w-full relative">
                     <button onclick="goBack()" class="fixed top-24 left-4 z-50 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-lg">&larr; Back</button>
@@ -293,6 +300,7 @@
                              <ul>
                                  <li class="flex justify-between py-2 border-b border-gray-700"><strong>Format:</strong> <span>${formatApiString(content.format)}</span></li>
                                  ${episodeOrChapterHTML}
+                                 ${countdownHTML}
                                  <li class="flex justify-between py-2 border-b border-gray-700"><strong>Status:</strong> <span>${formatApiString(content.status)}</span></li>
                                  <li class="flex justify-between py-2 border-b border-gray-700"><strong>Avg. Score:</strong> <span>${content.averageScore ? content.averageScore + '%' : 'N/A'}</span></li>
                                  <li class="flex justify-between py-2 border-b border-gray-700"><strong>Favorites:</strong> <span>${content.popularity ? content.popularity.toLocaleString() : 'N/A'}</span></li>
@@ -303,6 +311,35 @@
                         </div>
                     </div>
                 </div>`;
+            
+            // After rendering, activate the countdown if the element exists
+            if (isAnime && content.status === 'RELEASING' && content.nextAiringEpisode) {
+                const countdownElement = document.getElementById('countdown-timer');
+                if (countdownElement) {
+                    const airingAt = content.nextAiringEpisode.airingAt * 1000; // Convert to ms
+                    
+                    const updateCountdown = () => {
+                        const now = new Date().getTime();
+                        const distance = airingAt - now;
+
+                        if (distance < 0) {
+                            countdownElement.innerHTML = "Aired! Refreshing soon...";
+                            clearInterval(countdownInterval);
+                            return;
+                        }
+
+                        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                        countdownElement.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+                    };
+                    updateCountdown(); // Initial call to show immediately
+                    countdownInterval = setInterval(updateCountdown, 1000);
+                }
+            }
+
             showDetailView();
         }
         
@@ -395,6 +432,7 @@
         }
         
         function goBack() {
+            if (countdownInterval) clearInterval(countdownInterval); // Clear timer on back
             if (navigationHistory.length > 1) {
                 navigationHistory.pop();
                 const previousEntry = navigationHistory[navigationHistory.length - 1];
@@ -405,12 +443,11 @@
             }
         }
 
-        // FIXED: goHome now re-initializes the homepage to prevent empty state
         function goHome() {
+            if (countdownInterval) clearInterval(countdownInterval); // Clear timer on home
             navigationHistory = [];
             searchInput.value = '';
             document.title = 'AniPixel - Dashboard';
-            // Don't just show the dashboard, re-load it!
             initializeHomepage();
         }
 
@@ -436,7 +473,6 @@
             }
         });
 
-        // FIXED: Restored full-featured DOMContentLoaded handler
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 if (window.Telegram?.WebApp) {
@@ -455,12 +491,11 @@
                         initializeHomepage();
                     }
                 } else {
-                    // Fallback for browser development
                     initializeHomepage();
                 }
             } catch(e) {
                  console.error(`Error during init: ${e.message}`);
-                 initializeHomepage(); // Fallback on error
+                 initializeHomepage();
             }
             renderSearchHistory();
         });
