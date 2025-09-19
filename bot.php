@@ -13,7 +13,7 @@ if (file_exists(__DIR__ . '/.env')) {
 // --- CONFIGURATION ---
 // Read variables from the environment (.env file or server environment variables)
 $botToken = $_ENV['BOT_TOKEN'] ?? 'YOUR_TELEGRAM_BOT_TOKEN'; // Fallback for safety
-$webAppUrl = $_ENV['WEB_APP_URL'] ?? 'https://your-app.onrender.com/anime_spa.html';
+$webAppUrl = $_ENV['WEB_APP_URL'] ?? 'https://your-app.onrender.com/index.html';
 
 // Check if the variables are set
 if ($botToken === 'YOUR_TELEGRAM_BOT_TOKEN' || empty($botToken)) {
@@ -156,16 +156,17 @@ function sendAnimeDetailCard($chat_id, $anime_id) {
     $genres = implode(', ', $anime_data['genres']);
     $score = $anime_data['averageScore'] ? $anime_data['averageScore'] . '%' : 'N/A';
     
-    // This is the standard way to pass a deep link parameter.
-    $start_param = $anime_id;
-
     $caption = "🎬 *{$title}*\n\n*Genre:* {$genres}\n*Score:* {$score}";
 
-    // Telegram reads the 'startapp' query param and makes it available
-    // in the Mini App via `initDataUnsafe.start_param`.
+    // THE FIX: Use a standard URL query parameter. It's cleaner and more reliable.
+    // Instead of using the special '?startapp=', we create a normal URL like
+    // https://.../index.html?animeId=12345
+    $mini_app_url = WEB_APP_URL . '?animeId=' . $anime_id;
+
     $keyboard = [
         [
-             ['text' => '🚀 View in Mini App', 'web_app' => ['url' => WEB_APP_URL . '?startapp=' . $start_param]]
+            // The 'web_app' key tells Telegram to open this URL in the Mini App view.
+            ['text' => '🚀 View in Mini App', 'web_app' => ['url' => $mini_app_url]]
         ]
     ];
 
@@ -268,4 +269,3 @@ function apiRequest($method, $parameters) {
 }
 
 ?>
-
