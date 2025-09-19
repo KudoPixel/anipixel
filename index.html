@@ -468,7 +468,7 @@
         dashboardView.addEventListener('click', mainContentListener);
         detailView.addEventListener('click', mainContentListener); // Listen on detail view too for relations
 
-        // THE SECOND FIX IS HERE! Smart Mini App initialization
+        // The correct, standard and final Mini App initialization
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 if (window.Telegram && window.Telegram.WebApp) {
