@@ -1,14 +1,15 @@
 <?php
 
-namespace AniPixel;
-
-use Exception;
-
 /**
  * File: src/TelegramAPI.php
  * Description: AniPixel Bot - Telegram API Wrapper
  * This class handles all communications with the Telegram Bot API.
  */
+
+namespace AniPixel;
+
+use Exception;
+
 class TelegramAPI {
     private $apiUrl;
 
@@ -56,8 +57,9 @@ class TelegramAPI {
 
     /**
      * Sends a text message.
+     * FIX: Added explicit nullable type `?array` for PHP 8+ compatibility.
      */
-    public function sendMessage(int $chat_id, string $text, array $reply_markup = null) {
+    public function sendMessage(int $chat_id, string $text, ?array $reply_markup = null) {
         $params = ['chat_id' => $chat_id, 'text' => $text, 'parse_mode' => 'Markdown'];
         if ($reply_markup) {
             $params['reply_markup'] = json_encode($reply_markup);
@@ -67,8 +69,9 @@ class TelegramAPI {
 
     /**
      * Sends a photo.
+     * FIX: Added explicit nullable type `?array` for PHP 8+ compatibility.
      */
-    public function sendPhoto(int $chat_id, string $photo_url, string $caption, array $reply_markup = null) {
+    public function sendPhoto(int $chat_id, string $photo_url, string $caption, ?array $reply_markup = null) {
         $params = [
             'chat_id' => $chat_id,
             'photo' => $photo_url,
@@ -83,8 +86,9 @@ class TelegramAPI {
     
     /**
      * Edits the text of an existing message.
+     * FIX: Added explicit nullable type `?array` for PHP 8+ compatibility.
      */
-    public function editMessageText(int $chat_id, int $message_id, string $text, array $reply_markup = null) {
+    public function editMessageText(int $chat_id, int $message_id, string $text, ?array $reply_markup = null) {
         $params = [
             'chat_id' => $chat_id,
             'message_id' => $message_id,

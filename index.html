@@ -1,198 +1,319 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AniPixel - The Ultimate SPA</title>
     <!-- Telegram Mini App Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #111827; /* bg-gray-900 */
+      body {
+        user-select: none;
+        font-family: "Inter", sans-serif;
+        background-color: #111827; /* bg-gray-900 */
+      }
+      .anime-card,
+      .person-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      }
+      .anime-card:hover,
+      .person-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3),
+          0 4px 6px -2px rgba(0, 0, 0, 0.15);
+      }
+      /* Styled Scrollbar */
+      .scroll-container::-webkit-scrollbar {
+        height: 8px;
+      }
+      .scroll-container::-webkit-scrollbar-track {
+        background: #1f2937; /* bg-gray-800 */
+        border-radius: 10px;
+      }
+      .scroll-container::-webkit-scrollbar-thumb {
+        background: #4b5563; /* bg-gray-600 */
+        border-radius: 10px;
+      }
+      .scroll-container::-webkit-scrollbar-thumb:hover {
+        background: #6b7280; /* bg-gray-500 */
+      }
+      input[type="search"]::-webkit-search-decoration,
+      input[type="search"]::-webkit-search-cancel-button,
+      input[type="search"]::-webkit-search-results-button,
+      input[type="search"]::-webkit-search-results-decoration {
+        -webkit-appearance: none;
+      }
+      /* Fade in animation */
+      .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
         }
-        .anime-card, .person-card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        .anime-card:hover, .person-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
-        }
-        /* Styled Scrollbar */
-        .scroll-container::-webkit-scrollbar {
-            height: 8px;
-        }
-        .scroll-container::-webkit-scrollbar-track {
-            background: #1f2937; /* bg-gray-800 */
-            border-radius: 10px;
-        }
-        .scroll-container::-webkit-scrollbar-thumb {
-            background: #4b5563; /* bg-gray-600 */
-            border-radius: 10px;
-        }
-        .scroll-container::-webkit-scrollbar-thumb:hover {
-            background: #6b7280; /* bg-gray-500 */
-        }
-        input[type="search"]::-webkit-search-decoration,
-        input[type="search"]::-webkit-search-cancel-button,
-        input[type="search"]::-webkit-search-results-button,
-        input[type="search"]::-webkit-search-results-decoration {
-          -webkit-appearance:none;
-        }
-        /* Fade in animation */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .aspect-ratio-16-9 {
-            position: relative;
-            width: 100%;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
-        }
-        .aspect-ratio-16-9 iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
+      }
+      .aspect-ratio-16-9 {
+        position: relative;
+        width: 100%;
+        padding-top: 56.25%; /* 16:9 Aspect Ratio */
+      }
+      .aspect-ratio-16-9 iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
     </style>
-</head>
-<body class="text-gray-200">
-    
+  </head>
+  <body class="text-gray-200">
     <!-- DEBUG PANE -->
-    <div id="debug-pane" class="hidden fixed bottom-0 left-0 bg-black bg-opacity-80 text-white text-xs p-2 z-50 rounded-tr-lg max-w-full overflow-auto">
-        <p><strong>Debug Info:</strong></p>
-        <pre id="debug-info">Initializing...</pre>
+    <div
+      id="debug-pane"
+      class="hidden fixed bottom-0 left-0 bg-black bg-opacity-80 text-white text-xs p-2 z-50 rounded-tr-lg max-w-full overflow-auto"
+    >
+      <p><strong>Debug Info:</strong></p>
+      <pre id="debug-info">Initializing...</pre>
     </div>
 
     <!-- Header with Search Bar -->
     <header class="bg-gray-800 sticky top-0 z-40 shadow-lg">
-        <div class="container mx-auto p-4 flex flex-col gap-4">
-            <div class="flex justify-between items-center w-full">
-                <h1 class="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer" onclick="goHome()">AniPixel</h1>
-                <form id="search-form" class="w-2/3 md:w-1/2">
-                    <div class="relative">
-                        <input type="search" id="search-input" placeholder="Search for any anime..." class="w-full bg-gray-700 text-white rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button type="submit" class="absolute right-0 top-0 mt-2 mr-3">
-                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        </button>
-                    </div>
-                </form>
+      <div class="container mx-auto p-4 flex flex-col gap-4">
+        <div class="flex justify-between items-center w-full">
+          <h1
+            class="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer"
+            onclick="goHome()"
+          >
+            AniPixel
+          </h1>
+          <form id="search-form" class="w-2/3 md:w-1/2">
+            <div class="relative">
+              <input
+                type="search"
+                id="search-input"
+                placeholder="Search for any anime..."
+                class="w-full bg-gray-700 text-white rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button type="submit" class="absolute right-0 top-0 mt-2 mr-3">
+                <svg
+                  class="h-6 w-6 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  ></path>
+                </svg>
+              </button>
             </div>
-            <div id="search-history" class="scroll-container flex items-center gap-2 overflow-x-auto pb-1"></div>
+          </form>
         </div>
+        <div
+          id="search-history"
+          class="scroll-container flex items-center gap-2 overflow-x-auto pb-1"
+        ></div>
+      </div>
     </header>
 
     <!-- Loader -->
     <div id="loader" class="flex justify-center items-center h-[80vh]">
-        <div class="flex flex-col items-center">
-            <svg class="animate-spin -ml-1 mr-3 h-12 w-12 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <p class="mt-4 text-xl" id="loader-text">Discovering Awesome Anime...</p>
-        </div>
+      <div class="flex flex-col items-center">
+        <svg
+          class="animate-spin -ml-1 mr-3 h-12 w-12 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <p class="mt-4 text-xl" id="loader-text">
+          Discovering Awesome Anime...
+        </p>
+      </div>
     </div>
 
     <!-- Main Content Wrapper -->
     <div id="app-content" class="hidden">
-        
-        <!-- DASHBOARD VIEW -->
-        <main id="dashboard-view" class="container mx-auto p-4 md:p-8">
-            <section id="search-results-section" class="mb-12 hidden">
-                <h2 class="text-3xl font-bold mb-4 border-l-4 border-green-500 pl-3">Search Results</h2>
-                <div id="search-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
-            </section>
-            <div id="homepage-sections">
-                <section id="airing-now-section" class="mb-12"><h2 id="airing-now-title" class="text-3xl font-bold mb-4 border-l-4 border-green-400 pl-3">Airing Now</h2><div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div></section>
-                <section id="season-section" class="mb-12"><h2 id="season-title" class="text-3xl font-bold mb-4 border-l-4 border-yellow-400 pl-3">Popular This Season</h2><div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div></section>
-                <section id="top-rated-section" class="mb-12"><h2 class="text-3xl font-bold mb-4 border-l-4 border-blue-500 pl-3">Top Rated All Time</h2><div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div></section>
-                <section id="romance-section" class="mb-12"><h2 class="text-3xl font-bold mb-4 border-l-4 border-pink-500 pl-3">Top Romance</h2><div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div></section>
-                <section id="airing-romance-section" class="mb-12"><h2 class="text-3xl font-bold mb-4 border-l-4 border-pink-400 pl-3">Airing Romance</h2><div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div></section>
-                <section id="comedy-section" class="mb-12"><h2 class="text-3xl font-bold mb-4 border-l-4 border-orange-500 pl-3">Top Comedy</h2><div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div></section>
-                <section id="detective-section" class="mb-12"><h2 class="text-3xl font-bold mb-4 border-l-4 border-indigo-500 pl-3">Top Detective & Mystery</h2><div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div></section>
-            </div>
-        </main>
-
-        <!-- DETAIL VIEW -->
-        <div id="detail-view" class="hidden container mx-auto p-4 md:p-8 fade-in">
-            <!-- Content will be injected by JS -->
+      <!-- DASHBOARD VIEW -->
+      <main id="dashboard-view" class="container mx-auto p-4 md:p-8">
+        <section id="search-results-section" class="mb-12 hidden">
+          <h2 class="text-3xl font-bold mb-4 border-l-4 border-green-500 pl-3">
+            Search Results
+          </h2>
+          <div
+            id="search-grid"
+            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
+          ></div>
+        </section>
+        <div id="homepage-sections">
+          <section id="airing-now-section" class="mb-12">
+            <h2
+              id="airing-now-title"
+              class="text-3xl font-bold mb-4 border-l-4 border-green-400 pl-3"
+            >
+              Airing Now
+            </h2>
+            <div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div>
+          </section>
+          <section id="season-section" class="mb-12">
+            <h2
+              id="season-title"
+              class="text-3xl font-bold mb-4 border-l-4 border-yellow-400 pl-3"
+            >
+              Popular This Season
+            </h2>
+            <div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div>
+          </section>
+          <section id="top-rated-section" class="mb-12">
+            <h2 class="text-3xl font-bold mb-4 border-l-4 border-blue-500 pl-3">
+              Top Rated All Time
+            </h2>
+            <div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div>
+          </section>
+          <section id="romance-section" class="mb-12">
+            <h2 class="text-3xl font-bold mb-4 border-l-4 border-pink-500 pl-3">
+              Top Romance
+            </h2>
+            <div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div>
+          </section>
+          <section id="airing-romance-section" class="mb-12">
+            <h2 class="text-3xl font-bold mb-4 border-l-4 border-pink-400 pl-3">
+              Airing Romance
+            </h2>
+            <div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div>
+          </section>
+          <section id="comedy-section" class="mb-12">
+            <h2
+              class="text-3xl font-bold mb-4 border-l-4 border-orange-500 pl-3"
+            >
+              Top Comedy
+            </h2>
+            <div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div>
+          </section>
+          <section id="detective-section" class="mb-12">
+            <h2
+              class="text-3xl font-bold mb-4 border-l-4 border-indigo-500 pl-3"
+            >
+              Top Detective & Mystery
+            </h2>
+            <div class="scroll-container flex gap-4 overflow-x-auto pb-4"></div>
+          </section>
         </div>
+      </main>
 
+      <!-- DETAIL VIEW -->
+      <div id="detail-view" class="hidden container mx-auto p-4 md:p-8 fade-in">
+        <!-- Content will be injected by JS -->
+      </div>
     </div>
 
     <script>
-        // DOM Elements
-        const loader = document.getElementById('loader');
-        const loaderText = document.getElementById('loader-text');
-        const appContent = document.getElementById('app-content');
-        const dashboardView = document.getElementById('dashboard-view');
-        const searchForm = document.getElementById('search-form');
-        const searchInput = document.getElementById('search-input');
-        const searchHistoryContainer = document.getElementById('search-history');
-        const searchResultsSection = document.getElementById('search-results-section');
-        const homepageSections = document.getElementById('homepage-sections');
-        const detailView = document.getElementById('detail-view');
-        const debugPane = document.getElementById('debug-pane');
-        const debugInfo = document.getElementById('debug-info');
+      // DOM Elements
+      const loader = document.getElementById("loader");
+      const loaderText = document.getElementById("loader-text");
+      const appContent = document.getElementById("app-content");
+      const dashboardView = document.getElementById("dashboard-view");
+      const searchForm = document.getElementById("search-form");
+      const searchInput = document.getElementById("search-input");
+      const searchHistoryContainer = document.getElementById("search-history");
+      const searchResultsSection = document.getElementById(
+        "search-results-section"
+      );
+      const homepageSections = document.getElementById("homepage-sections");
+      const detailView = document.getElementById("detail-view");
+      const debugPane = document.getElementById("debug-pane");
+      const debugInfo = document.getElementById("debug-info");
 
-        const STORAGE_KEY = 'animeSearchHistory';
-        
-        // History now stores objects: { id, type }
-        let navigationHistory = [];
+      const STORAGE_KEY = "animeSearchHistory";
 
-        // --- View Management ---
-        function showLoader(text = 'Loading...') {
-            loaderText.textContent = text;
-            loader.classList.remove('hidden');
-            appContent.classList.add('hidden');
-        }
-        function hideLoader() {
-            loader.classList.add('hidden');
-            appContent.classList.remove('hidden');
-        }
-        function showDashboard() {
-            detailView.classList.add('hidden');
-            dashboardView.classList.remove('hidden');
-            window.scrollTo(0, 0);
-        }
-        function showDetailView() {
-            dashboardView.classList.add('hidden');
-            detailView.classList.remove('hidden');
-            window.scrollTo(0, 0);
-        }
-        function updateDebugInfo(text, append = false) {
-            debugPane.classList.remove('hidden');
-            const newText = append ? debugInfo.textContent + '\n' + text : text;
-            debugInfo.textContent = newText;
-        }
+      // History now stores objects: { id, type }
+      let navigationHistory = [];
 
-        // --- LocalStorage ---
-        function getSearchHistory() { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-        function saveSearchTerm(term) {
-            let history = getSearchHistory().filter(item => item.toLowerCase() !== term.toLowerCase());
-            history.unshift(term);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, 5)));
-            renderSearchHistory();
-        }
-        function renderSearchHistory() {
-            const history = getSearchHistory();
-            searchHistoryContainer.classList.toggle('hidden', history.length === 0);
-            if (history.length > 0) {
-                const historyTitle = `<span class="text-sm font-semibold text-gray-400 mr-2 flex-shrink-0">Recent:</span>`;
-                const historyButtons = history.map(term => `<button class="text-sm bg-gray-700 hover:bg-blue-500 rounded-full px-3 py-1 transition-colors flex-shrink-0">${term}</button>`).join('');
-                searchHistoryContainer.innerHTML = historyTitle + historyButtons;
-            }
-        }
+      // --- View Management ---
+      function showLoader(text = "Loading...") {
+        loaderText.textContent = text;
+        loader.classList.remove("hidden");
+        appContent.classList.add("hidden");
+      }
+      function hideLoader() {
+        loader.classList.add("hidden");
+        appContent.classList.remove("hidden");
+      }
+      function showDashboard() {
+        detailView.classList.add("hidden");
+        dashboardView.classList.remove("hidden");
+        window.scrollTo(0, 0);
+      }
+      function showDetailView() {
+        dashboardView.classList.add("hidden");
+        detailView.classList.remove("hidden");
+        window.scrollTo(0, 0);
+      }
+      function updateDebugInfo(text, append = false) {
+        debugPane.classList.remove("hidden");
+        const newText = append ? debugInfo.textContent + "\n" + text : text;
+        debugInfo.textContent = newText;
+      }
 
-        // --- GraphQL Queries ---
-        const listFragment = `fragment mediaFields on Media { id type title { romaji english } coverImage { extraLarge } status genres }`;
-        const detailFragment = `
+      // --- LocalStorage ---
+      function getSearchHistory() {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      }
+      function saveSearchTerm(term) {
+        let history = getSearchHistory().filter(
+          (item) => item.toLowerCase() !== term.toLowerCase()
+        );
+        history.unshift(term);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, 5)));
+        renderSearchHistory();
+      }
+      function renderSearchHistory() {
+        const history = getSearchHistory();
+        searchHistoryContainer.classList.toggle("hidden", history.length === 0);
+        if (history.length > 0) {
+          const historyTitle = `<span class="text-sm font-semibold text-gray-400 mr-2 flex-shrink-0">Recent:</span>`;
+          const historyButtons = history
+            .map(
+              (term) =>
+                `<button class="text-sm bg-gray-700 hover:bg-blue-500 rounded-full px-3 py-1 transition-colors flex-shrink-0">${term}</button>`
+            )
+            .join("");
+          searchHistoryContainer.innerHTML = historyTitle + historyButtons;
+        }
+      }
+
+      // --- GraphQL Queries ---
+      const listFragment = `fragment mediaFields on Media { id type title { romaji english } coverImage { extraLarge } status genres }`;
+      const detailFragment = `
             fragment detailFields on Media {
               id type title { romaji english native } description(asHtml: false) format status episodes chapters volumes duration season seasonYear countryOfOrigin source averageScore popularity
               nextAiringEpisode { episode }
@@ -202,7 +323,7 @@
               staff(sort: [RELEVANCE, ROLE], perPage: 10) { edges { role node { id name { full } image { large } } } }
               studios(isMain: true) { nodes { name isAnimationStudio } } rankings { rank type allTime context } stats { statusDistribution { status amount } } siteUrl
             }`;
-        const homepageQuery = `query ($season: MediaSeason, $seasonYear: Int) { 
+      const homepageQuery = `query ($season: MediaSeason, $seasonYear: Int) { 
             airingNow: Page(page: 1, perPage: 15) { media(sort: POPULARITY_DESC, type: ANIME, isAdult: false, status: RELEASING) { ...mediaFields } }
             season: Page(page: 1, perPage: 15) { media(sort: POPULARITY_DESC, type: ANIME, isAdult: false, season: $season, seasonYear: $seasonYear) { ...mediaFields } } 
             topRated: Page(page: 1, perPage: 15) { media(sort: SCORE_DESC, type: ANIME, isAdult: false) { ...mediaFields } } 
@@ -211,286 +332,462 @@
             comedy: Page(page: 1, perPage: 15) { media(sort: SCORE_DESC, type: ANIME, genre: "Comedy", isAdult: false) { ...mediaFields } } 
             detective: Page(page: 1, perPage: 15) { media(sort: SCORE_DESC, type: ANIME, genre: "Mystery", isAdult: false) { ...mediaFields } } 
         } ${listFragment}`;
-        const searchQuery = `query ($search: String) { Page(page: 1, perPage: 18) { media(search: $search, type: ANIME, isAdult: false, sort: SEARCH_MATCH) { ...mediaFields } } } ${listFragment}`;
-        const animeDetailQuery = `query ($id: Int) { Media(id: $id, type: ANIME) { ...detailFields } } ${detailFragment}`;
-        const mangaDetailQuery = `query ($id: Int) { Media(id: $id, type: MANGA) { ...detailFields } } ${detailFragment}`;
+      const searchQuery = `query ($search: String) { Page(page: 1, perPage: 18) { media(search: $search, type: ANIME, isAdult: false, sort: SEARCH_MATCH) { ...mediaFields } } } ${listFragment}`;
+      const animeDetailQuery = `query ($id: Int) { Media(id: $id, type: ANIME) { ...detailFields } } ${detailFragment}`;
+      const mangaDetailQuery = `query ($id: Int) { Media(id: $id, type: MANGA) { ...detailFields } } ${detailFragment}`;
 
-        // --- API Fetch ---
-        async function fetchAPI(query, variables) {
-            const response = await fetch('https://graphql.anilist.co', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ query, variables }) });
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-        }
+      // --- API Fetch ---
+      async function fetchAPI(query, variables) {
+        const response = await fetch("https://graphql.anilist.co", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ query, variables }),
+        });
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      }
 
-        // --- Rendering ---
-        function createContentCard(content, context = 'carousel') {
-             const title = content.title.english || content.title.romaji;
-             const status = content.status;
-             let statusLabel = '';
-             if (status === 'RELEASING') statusLabel = `<div class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">${content.type === 'MANGA' ? 'Publishing' : 'Airing'}</div>`;
-             else if (status === 'FINISHED') statusLabel = `<div class="absolute top-2 right-2 bg-gray-700 text-gray-200 text-xs font-bold px-2 py-1 rounded-full shadow-md">Finished</div>`;
-             else if (status === 'NOT_YET_RELEASED') statusLabel = `<div class="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">Upcoming</div>`;
-             const cardClasses = context === 'carousel' ? 'flex-shrink-0 w-48' : '';
-             return `<div class="anime-card ${cardClasses} bg-gray-800 rounded-lg shadow-lg overflow-hidden relative cursor-pointer" data-id="${content.id}" data-type="${content.type}">
-                        <img src="${content.coverImage.extraLarge}" alt="${title}" class="w-full h-64 object-cover" loading="lazy">
+      // --- Rendering ---
+      function createContentCard(content, context = "carousel") {
+        const title = content.title.english || content.title.romaji;
+        const status = content.status;
+        let statusLabel = "";
+        if (status === "RELEASING")
+          statusLabel = `<div class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">${
+            content.type === "MANGA" ? "Publishing" : "Airing"
+          }</div>`;
+        else if (status === "FINISHED")
+          statusLabel = `<div class="absolute top-2 right-2 bg-gray-700 text-gray-200 text-xs font-bold px-2 py-1 rounded-full shadow-md">Finished</div>`;
+        else if (status === "NOT_YET_RELEASED")
+          statusLabel = `<div class="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">Upcoming</div>`;
+        const cardClasses = context === "carousel" ? "flex-shrink-0 w-48" : "";
+        return `<div class="anime-card ${cardClasses} bg-gray-800 rounded-lg shadow-lg overflow-hidden relative cursor-pointer" data-id="${
+          content.id
+        }" data-type="${content.type}">
+                        <img src="${
+                          content.coverImage.extraLarge
+                        }" alt="${title}" class="w-full h-64 object-cover" loading="lazy">
                         <div class="p-3">
                             <h3 class="text-md font-semibold truncate" title="${title}">${title}</h3>
-                            <p class="text-xs text-gray-400 truncate">${(content.genres || []).slice(0, 2).join(', ')}</p>
+                            <p class="text-xs text-gray-400 truncate">${(
+                              content.genres || []
+                            )
+                              .slice(0, 2)
+                              .join(", ")}</p>
                         </div>
                         ${statusLabel}
                     </div>`;
+      }
+      function createPersonCard(person, role) {
+        return `<div class="person-card flex-shrink-0 w-32 bg-gray-800 rounded-lg shadow-lg overflow-hidden relative"><img src="${
+          person.image.large
+        }" alt="${
+          person.name.full
+        }" class="w-full h-40 object-cover" loading="lazy"><div class="p-2"><h3 class="text-sm font-semibold truncate" title="${
+          person.name.full
+        }">${
+          person.name.full
+        }</h3><p class="text-xs text-gray-400 truncate">${formatApiString(
+          role
+        )}</p></div></div>`;
+      }
+      function renderSection(animeList, sectionId) {
+        const container = document.querySelector(
+          `#${sectionId} .scroll-container`
+        );
+        if (container && animeList?.length > 0) {
+          container.innerHTML = animeList
+            .map((content) => createContentCard(content, "carousel"))
+            .join("");
+          document.getElementById(sectionId).classList.remove("hidden");
+        } else if (container) {
+          document.getElementById(sectionId).classList.add("hidden");
         }
-        function createPersonCard(person, role) {
-             return `<div class="person-card flex-shrink-0 w-32 bg-gray-800 rounded-lg shadow-lg overflow-hidden relative"><img src="${person.image.large}" alt="${person.name.full}" class="w-full h-40 object-cover" loading="lazy"><div class="p-2"><h3 class="text-sm font-semibold truncate" title="${person.name.full}">${person.name.full}</h3><p class="text-xs text-gray-400 truncate">${formatApiString(role)}</p></div></div>`;
+      }
+
+      function renderDetailView(content) {
+        if (!content) {
+          console.error("renderDetailView called with null data.");
+          goBack();
+          return;
         }
-        function renderSection(animeList, sectionId) {
-            const container = document.querySelector(`#${sectionId} .scroll-container`);
-            if (container && animeList?.length > 0) {
-                 container.innerHTML = animeList.map(content => createContentCard(content, 'carousel')).join('');
-                 document.getElementById(sectionId).classList.remove('hidden');
-            } else if(container) {
-                 document.getElementById(sectionId).classList.add('hidden');
-            }
-        }
-        
-        function renderDetailView(content) {
-            if (!content) {
-                console.error("renderDetailView called with null data.");
-                goBack();
-                return;
-            }
-            const isManga = content.type === 'MANGA';
-            const title = content.title?.english || content.title?.romaji;
-            document.title = `${title || 'Details'} - AniPixel`;
-            const genres = (content.genres || []).map(g => `<span class="bg-gray-700 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">${g}</span>`).join('');
-            const tags = (content.tags || []).slice(0, 10).map(t => `<span class="bg-gray-700 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full opacity-75">${t.name}</span>`).join('');
-            const trailer = !isManga && content.trailer?.site === 'youtube' ? `<div class="aspect-ratio-16-9 mt-6 rounded-lg overflow-hidden"><iframe src="https://www.youtube.com/embed/${content.trailer.id}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>` : '';
-            const mainStudio = !isManga ? content.studios?.nodes.find(s => s.isAnimationStudio) : null;
-            const charactersHTML = content.characters?.edges.map(edge => createPersonCard(edge.node, edge.role)).join('') || '<p class="text-gray-400">No characters found.</p>';
-            const staffHTML = content.staff?.edges.map(edge => createPersonCard(edge.node, edge.role)).join('') || '<p class="text-gray-400">No staff found.</p>';
-            const relationsHTML = (content.relations?.edges || []).map(edge => createContentCard(edge.node, 'carousel')).join('') || '<p class="text-gray-400">No related content found.</p>';
-            const rankingsHTML = (content.rankings || []).filter(r => r.allTime && ['RATED', 'POPULAR'].includes(r.type)).map(rank => `<div class="bg-gray-800 p-4 rounded-lg"><p class="text-sm text-blue-400">${rank.context}</p><p class="text-3xl font-bold">#${rank.rank}</p></div>`).join('');
-            const totalUsers = (content.stats?.statusDistribution || []).reduce((acc, status) => acc + status.amount, 0);
-            const statsHTML = (content.stats?.statusDistribution || []).map(stat => `<div><div class="flex justify-between mb-1"><span class="text-sm font-medium">${formatApiString(stat.status)}</span><span class="text-sm font-medium text-gray-400">${stat.amount.toLocaleString()}</span></div><div class="w-full bg-gray-700 rounded-full h-2.5"><div class="bg-blue-500 h-2.5 rounded-full" style="width: ${totalUsers > 0 ? (stat.amount / totalUsers) * 100 : 0}%"></div></div></div>`).join('');
-            
-            detailView.innerHTML = `
+        const isManga = content.type === "MANGA";
+        const title = content.title?.english || content.title?.romaji;
+        document.title = `${title || "Details"} - AniPixel`;
+        const genres = (content.genres || [])
+          .map(
+            (g) =>
+              `<span class="bg-gray-700 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">${g}</span>`
+          )
+          .join("");
+        const tags = (content.tags || [])
+          .slice(0, 10)
+          .map(
+            (t) =>
+              `<span class="bg-gray-700 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full opacity-75">${t.name}</span>`
+          )
+          .join("");
+        const trailer =
+          !isManga && content.trailer?.site === "youtube"
+            ? `<div class="aspect-ratio-16-9 mt-6 rounded-lg overflow-hidden"><iframe src="https://www.youtube.com/embed/${content.trailer.id}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>`
+            : "";
+        const mainStudio = !isManga
+          ? content.studios?.nodes.find((s) => s.isAnimationStudio)
+          : null;
+        const charactersHTML =
+          content.characters?.edges
+            .map((edge) => createPersonCard(edge.node, edge.role))
+            .join("") || '<p class="text-gray-400">No characters found.</p>';
+        const staffHTML =
+          content.staff?.edges
+            .map((edge) => createPersonCard(edge.node, edge.role))
+            .join("") || '<p class="text-gray-400">No staff found.</p>';
+        const relationsHTML =
+          (content.relations?.edges || [])
+            .map((edge) => createContentCard(edge.node, "carousel"))
+            .join("") ||
+          '<p class="text-gray-400">No related content found.</p>';
+        const rankingsHTML = (content.rankings || [])
+          .filter((r) => r.allTime && ["RATED", "POPULAR"].includes(r.type))
+          .map(
+            (rank) =>
+              `<div class="bg-gray-800 p-4 rounded-lg"><p class="text-sm text-blue-400">${rank.context}</p><p class="text-3xl font-bold">#${rank.rank}</p></div>`
+          )
+          .join("");
+        const totalUsers = (content.stats?.statusDistribution || []).reduce(
+          (acc, status) => acc + status.amount,
+          0
+        );
+        const statsHTML = (content.stats?.statusDistribution || [])
+          .map(
+            (stat) =>
+              `<div><div class="flex justify-between mb-1"><span class="text-sm font-medium">${formatApiString(
+                stat.status
+              )}</span><span class="text-sm font-medium text-gray-400">${stat.amount.toLocaleString()}</span></div><div class="w-full bg-gray-700 rounded-full h-2.5"><div class="bg-blue-500 h-2.5 rounded-full" style="width: ${
+                totalUsers > 0 ? (stat.amount / totalUsers) * 100 : 0
+              }%"></div></div></div>`
+          )
+          .join("");
+
+        detailView.innerHTML = `
                 <div class="w-full">
                     <button onclick="goBack()" class="fixed top-24 left-4 z-50 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-lg">&larr; Back</button>
                     <div class="relative h-48 md:h-64 rounded-lg overflow-hidden">
-                        <img src="${content.bannerImage || content.coverImage?.extraLarge}" alt="Banner for ${title}" class="w-full h-full object-cover opacity-30"><div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+                        <img src="${
+                          content.bannerImage || content.coverImage?.extraLarge
+                        }" alt="Banner for ${title}" class="w-full h-full object-cover opacity-30"><div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
                     </div>
                     <div class="relative z-10 flex flex-col md:flex-row gap-8 -mt-24 px-4">
-                        <div class="flex-shrink-0 w-48 mx-auto md:mx-0"><img src="${content.coverImage?.extraLarge}" alt="Cover for ${title}" class="rounded-lg shadow-2xl"></div>
-                        <div class="flex-grow pt-8 md:pt-28 text-center md:text-left"><h1 class="text-3xl md:text-4xl font-extrabold">${title}</h1><p class="text-lg text-gray-400">${content.title?.native || ''}</p><div class="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">${genres}</div></div>
+                        <div class="flex-shrink-0 w-48 mx-auto md:mx-0"><img src="${
+                          content.coverImage?.extraLarge
+                        }" alt="Cover for ${title}" class="rounded-lg shadow-2xl"></div>
+                        <div class="flex-grow pt-8 md:pt-28 text-center md:text-left"><h1 class="text-3xl md:text-4xl font-extrabold">${title}</h1><p class="text-lg text-gray-400">${
+          content.title?.native || ""
+        }</p><div class="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">${genres}</div></div>
                     </div>
                     <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div class="md:col-span-2">
-                            ${rankingsHTML ? `<h2 class="text-2xl font-bold mb-4 border-l-4 pl-3" style="border-color: ${content.coverImage?.color || '#3B82F6'}">Rankings</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">${rankingsHTML}</div>` : ''}
-                            <h2 class="text-2xl font-bold mt-8 mb-2 border-l-4 pl-3" style="border-color: ${content.coverImage?.color || '#3B82F6'}">Synopsis</h2>
-                            <p class="text-gray-300 whitespace-pre-wrap">${content.description || 'No synopsis available.'}</p>
+                            ${
+                              rankingsHTML
+                                ? `<h2 class="text-2xl font-bold mb-4 border-l-4 pl-3" style="border-color: ${
+                                    content.coverImage?.color || "#3B82F6"
+                                  }">Rankings</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">${rankingsHTML}</div>`
+                                : ""
+                            }
+                            <h2 class="text-2xl font-bold mt-8 mb-2 border-l-4 pl-3" style="border-color: ${
+                              content.coverImage?.color || "#3B82F6"
+                            }">Synopsis</h2>
+                            <p class="text-gray-300 whitespace-pre-wrap">${
+                              content.description || "No synopsis available."
+                            }</p>
                             <div class="mt-4 flex flex-wrap gap-2">${tags}</div>
-                            <h2 class="text-2xl font-bold mt-8 mb-4 border-l-4 pl-3" style="border-color: ${content.coverImage?.color || '#3B82F6'}">Characters</h2>
+                            <h2 class="text-2xl font-bold mt-8 mb-4 border-l-4 pl-3" style="border-color: ${
+                              content.coverImage?.color || "#3B82F6"
+                            }">Characters</h2>
                             <div class="scroll-container flex gap-4 overflow-x-auto pb-4">${charactersHTML}</div>
-                            <h2 class="text-2xl font-bold mt-8 mb-4 border-l-4 pl-3" style="border-color: ${content.coverImage?.color || '#3B82F6'}">${isManga ? 'Authors & Artists' : 'Staff'}</h2>
+                            <h2 class="text-2xl font-bold mt-8 mb-4 border-l-4 pl-3" style="border-color: ${
+                              content.coverImage?.color || "#3B82F6"
+                            }">${isManga ? "Authors & Artists" : "Staff"}</h2>
                             <div class="scroll-container flex gap-4 overflow-x-auto pb-4">${staffHTML}</div>
-                            ${relationsHTML ? `<h2 class="text-2xl font-bold mt-8 mb-4 border-l-4 pl-3" style="border-color: ${content.coverImage?.color || '#3B82F6'}">Related Media</h2><div class="scroll-container flex gap-4 overflow-x-auto pb-4">${relationsHTML}</div>` : ''}
-                            ${trailer ? `<h2 class="text-2xl font-bold mt-8 mb-2 border-l-4 pl-3" style="border-color: ${content.coverImage?.color || '#3B82F6'}">Trailer</h2>${trailer}` : ''}
+                            ${
+                              relationsHTML
+                                ? `<h2 class="text-2xl font-bold mt-8 mb-4 border-l-4 pl-3" style="border-color: ${
+                                    content.coverImage?.color || "#3B82F6"
+                                  }">Related Media</h2><div class="scroll-container flex gap-4 overflow-x-auto pb-4">${relationsHTML}</div>`
+                                : ""
+                            }
+                            ${
+                              trailer
+                                ? `<h2 class="text-2xl font-bold mt-8 mb-2 border-l-4 pl-3" style="border-color: ${
+                                    content.coverImage?.color || "#3B82F6"
+                                  }">Trailer</h2>${trailer}`
+                                : ""
+                            }
                         </div>
                         <div class="bg-gray-800 p-4 rounded-lg h-fit">
                              <h2 class="text-xl font-bold mb-4">Details</h2>
                              <ul>
-                                 <li class="flex justify-between py-2 border-b border-gray-700"><strong>Format:</strong> <span>${formatApiString(content.format)}</span></li>
-                                 ${isManga ? `
-                                    <li class="flex justify-between py-2 border-b border-gray-700"><strong>Chapters:</strong> <span>${content.chapters || 'N/A'}</span></li>
-                                    <li class="flex justify-between py-2 border-b border-gray-700"><strong>Volumes:</strong> <span>${content.volumes || 'N/A'}</span></li>
-                                 ` : `
-                                    <li class="flex justify-between py-2 border-b border-gray-700"><strong>Episodes:</strong> <span>${
-                                        content.status === 'RELEASING' && content.nextAiringEpisode
-                                            ? `${content.nextAiringEpisode.episode - 1} / ${content.episodes || '?'}`
-                                            : (content.episodes || 'N/A')
+                                 <li class="flex justify-between py-2 border-b border-gray-700"><strong>Format:</strong> <span>${formatApiString(
+                                   content.format
+                                 )}</span></li>
+                                 ${
+                                   isManga
+                                     ? `
+                                    <li class="flex justify-between py-2 border-b border-gray-700"><strong>Chapters:</strong> <span>${
+                                      content.chapters || "N/A"
                                     }</span></li>
-                                    <li class="flex justify-between py-2 border-b border-rage-700"><strong>Season:</strong> <span>${formatApiString(content.season)} ${content.seasonYear || ''}</span></li>
-                                 `}
-                                 <li class="flex justify-between py-2 border-b border-gray-700"><strong>Status:</strong> <span>${formatApiString(content.status)}</span></li>
-                                 <li class="flex justify-between py-2 border-b border-gray-700"><strong>Avg. Score:</strong> <span>${content.averageScore ? content.averageScore + '%' : 'N/A'}</span></li>
-                                 <li class="flex justify-between py-2 border-b border-gray-700"><strong>Favorites:</strong> <span>${content.popularity ? content.popularity.toLocaleString() : 'N/A'}</span></li>
-                                 ${!isManga && mainStudio ? `<li class="flex justify-between py-2 border-b border-gray-700"><strong>Studio:</strong> <span>${mainStudio.name}</span></li>` : ''}
-                                 <li class="flex justify-between py-2"><strong>Source:</strong> <span>${formatApiString(content.source)}</span></li>
+                                    <li class="flex justify-between py-2 border-b border-gray-700"><strong>Volumes:</strong> <span>${
+                                      content.volumes || "N/A"
+                                    }</span></li>
+                                 `
+                                     : `
+                                    <li class="flex justify-between py-2 border-b border-gray-700"><strong>Episodes:</strong> <span>${
+                                      content.status === "RELEASING" &&
+                                      content.nextAiringEpisode
+                                        ? `${
+                                            content.nextAiringEpisode.episode -
+                                            1
+                                          } / ${content.episodes || "?"}`
+                                        : content.episodes || "N/A"
+                                    }</span></li>
+                                    <li class="flex justify-between py-2 border-b border-rage-700"><strong>Season:</strong> <span>${formatApiString(
+                                      content.season
+                                    )} ${content.seasonYear || ""}</span></li>
+                                 `
+                                 }
+                                 <li class="flex justify-between py-2 border-b border-gray-700"><strong>Status:</strong> <span>${formatApiString(
+                                   content.status
+                                 )}</span></li>
+                                 <li class="flex justify-between py-2 border-b border-gray-700"><strong>Avg. Score:</strong> <span>${
+                                   content.averageScore
+                                     ? content.averageScore + "%"
+                                     : "N/A"
+                                 }</span></li>
+                                 <li class="flex justify-between py-2 border-b border-gray-700"><strong>Favorites:</strong> <span>${
+                                   content.popularity
+                                     ? content.popularity.toLocaleString()
+                                     : "N/A"
+                                 }</span></li>
+                                 ${
+                                   !isManga && mainStudio
+                                     ? `<li class="flex justify-between py-2 border-b border-gray-700"><strong>Studio:</strong> <span>${mainStudio.name}</span></li>`
+                                     : ""
+                                 }
+                                 <li class="flex justify-between py-2"><strong>Source:</strong> <span>${formatApiString(
+                                   content.source
+                                 )}</span></li>
                              </ul>
-                             ${statsHTML ? `<h2 class="text-xl font-bold mt-6 mb-4">User Stats</h2><div class="space-y-4">${statsHTML}</div>` : ''}
+                             ${
+                               statsHTML
+                                 ? `<h2 class="text-xl font-bold mt-6 mb-4">User Stats</h2><div class="space-y-4">${statsHTML}</div>`
+                                 : ""
+                             }
                         </div>
                     </div>
                 </div>`;
-            showDetailView();
-        }
-        
-        // --- Helpers ---
-        function getCurrentSeason() {
-            const now = new Date();
-            const month = now.getMonth();
-            const year = now.getFullYear();
-            let season;
-            if (month <= 2) season = 'WINTER'; else if (month <= 5) season = 'SPRING'; else if (month <= 8) season = 'SUMMER'; else season = 'FALL';
-            return { season, year };
-        }
-        function formatApiString(str) {
-            if (!str) return 'N/A';
-            return str.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        }
+        showDetailView();
+      }
 
-        // --- Event Handlers & Initialization ---
-        async function initializeHomepage() {
-            showLoader('Discovering Awesome Anime...');
-            try {
-                const { season: currentSeason, year: currentYear } = getCurrentSeason();
-                const formattedSeason = formatApiString(currentSeason);
-                document.getElementById('season-title').textContent = `Popular - ${formattedSeason} ${currentYear}`;
-                document.getElementById('airing-now-title').textContent = `Airing in ${formattedSeason} ${currentYear}`;
-                const result = await fetchAPI(homepageQuery, { season: currentSeason, year: currentYear });
-                renderSection(result.data.airingNow.media, 'airing-now-section');
-                renderSection(result.data.season.media, 'season-section');
-                renderSection(result.data.topRated.media, 'top-rated-section');
-                renderSection(result.data.romance.media, 'romance-section');
-                renderSection(result.data.airingRomance.media, 'airing-romance-section');
-                renderSection(result.data.comedy.media, 'comedy-section');
-                renderSection(result.data.detective.media, 'detective-section');
-                showDashboard();
-            } catch (error) {
-                console.error("Failed to fetch homepage data:", error);
-                dashboardView.innerHTML = '<div class="text-red-500 text-xl text-center py-20"><h3>Oops! Something went wrong.</h3><p>Could not load anime data. Please check your connection and try again.</p></div>';
-            } finally {
-                hideLoader();
-            }
-        }
+      // --- Helpers ---
+      function getCurrentSeason() {
+        const now = new Date();
+        const month = now.getMonth();
+        const year = now.getFullYear();
+        let season;
+        if (month <= 2) season = "WINTER";
+        else if (month <= 5) season = "SPRING";
+        else if (month <= 8) season = "SUMMER";
+        else season = "FALL";
+        return { season, year };
+      }
+      function formatApiString(str) {
+        if (!str) return "N/A";
+        return str.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+      }
 
-        async function handleSearch(searchTerm) {
-            showLoader(`Searching for "${searchTerm}"...`);
-            try {
-                const result = await fetchAPI(searchQuery, { search: searchTerm });
-                const searchGrid = document.getElementById('search-grid');
-                if(result.data.Page.media.length > 0) {
-                    searchGrid.innerHTML = result.data.Page.media.map(content => createContentCard(content, 'grid')).join('');
-                    homepageSections.classList.add('hidden');
-                    searchResultsSection.classList.remove('hidden');
-                    saveSearchTerm(searchTerm);
-                } else {
-                     searchGrid.innerHTML = `<p class="col-span-full text-center text-gray-400">No results found for "${searchTerm}".</p>`;
-                }
-                showDashboard();
-            } catch (error) {
-                console.error("Search failed:", error);
-                searchResultsSection.innerHTML = '<p class="text-red-500 text-xl text-center py-20">Search failed. Please try again.</p>';
-            } finally {
-                hideLoader();
-            }
+      // --- Event Handlers & Initialization ---
+      async function initializeHomepage() {
+        showLoader("Discovering Awesome Anime...");
+        try {
+          const { season: currentSeason, year: currentYear } =
+            getCurrentSeason();
+          const formattedSeason = formatApiString(currentSeason);
+          document.getElementById(
+            "season-title"
+          ).textContent = `Popular - ${formattedSeason} ${currentYear}`;
+          document.getElementById(
+            "airing-now-title"
+          ).textContent = `Airing in ${formattedSeason} ${currentYear}`;
+          const result = await fetchAPI(homepageQuery, {
+            season: currentSeason,
+            year: currentYear,
+          });
+          renderSection(result.data.airingNow.media, "airing-now-section");
+          renderSection(result.data.season.media, "season-section");
+          renderSection(result.data.topRated.media, "top-rated-section");
+          renderSection(result.data.romance.media, "romance-section");
+          renderSection(
+            result.data.airingRomance.media,
+            "airing-romance-section"
+          );
+          renderSection(result.data.comedy.media, "comedy-section");
+          renderSection(result.data.detective.media, "detective-section");
+          showDashboard();
+        } catch (error) {
+          console.error("Failed to fetch homepage data:", error);
+          dashboardView.innerHTML =
+            '<div class="text-red-500 text-xl text-center py-20"><h3>Oops! Something went wrong.</h3><p>Could not load anime data. Please check your connection and try again.</p></div>';
+        } finally {
+          hideLoader();
         }
-        
-        async function fetchAndRenderDetails({ id, type }) {
-            if (isNaN(id)) {
-                updateDebugInfo(`Invalid ID: ${id}`, true);
-                return;
-            }
-            showLoader(`Fetching ${type.toLowerCase()} details...`);
-            try {
-                const query = type === 'MANGA' ? mangaDetailQuery : animeDetailQuery;
-                const result = await fetchAPI(query, { id });
-                renderDetailView(result.data.Media);
-            } catch (error) {
-                console.error(`Failed to fetch details for ${type} ID ${id}:`, error);
-                goBack(); 
-            } finally {
-                hideLoader();
-            }
-        }
-        
-        function handleCardClick({ id, type }) {
-            const lastItem = navigationHistory[navigationHistory.length - 1];
-            if (!lastItem || lastItem.id !== id) {
-                navigationHistory.push({ id, type });
-                updateDebugInfo(`Mapsd. History: ${JSON.stringify(navigationHistory)}`, true);
-            }
-            fetchAndRenderDetails({ id, type });
-        }
-        
-        function goBack() {
-            navigationHistory.pop(); 
-            
-            if (navigationHistory.length > 0) {
-                const previousItem = navigationHistory[navigationHistory.length - 1];
-                updateDebugInfo(`Going back. History: ${JSON.stringify(navigationHistory)}`, true);
-                fetchAndRenderDetails(previousItem);
-            } else {
-                goHome(); 
-            }
-        }
+      }
 
-        function goHome() {
-            navigationHistory = []; 
-            updateDebugInfo('Navigated to Home. History cleared.', true);
-            showDashboard();
-            searchResultsSection.classList.add('hidden');
-            homepageSections.classList.remove('hidden');
-            searchInput.value = '';
-            document.title = 'AniPixel - Dashboard';
+      async function handleSearch(searchTerm) {
+        showLoader(`Searching for "${searchTerm}"...`);
+        try {
+          const result = await fetchAPI(searchQuery, { search: searchTerm });
+          const searchGrid = document.getElementById("search-grid");
+          if (result.data.Page.media.length > 0) {
+            searchGrid.innerHTML = result.data.Page.media
+              .map((content) => createContentCard(content, "grid"))
+              .join("");
+            homepageSections.classList.add("hidden");
+            searchResultsSection.classList.remove("hidden");
+            saveSearchTerm(searchTerm);
+          } else {
+            searchGrid.innerHTML = `<p class="col-span-full text-center text-gray-400">No results found for "${searchTerm}".</p>`;
+          }
+          showDashboard();
+        } catch (error) {
+          console.error("Search failed:", error);
+          searchResultsSection.innerHTML =
+            '<p class="text-red-500 text-xl text-center py-20">Search failed. Please try again.</p>';
+        } finally {
+          hideLoader();
         }
+      }
 
-        // --- Event Listeners ---
-        searchForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const searchTerm = searchInput.value.trim();
-            if (searchTerm) {
-                goHome();
-                handleSearch(searchTerm);
-            }
-        });
-        searchHistoryContainer.addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                goHome();
-                const searchTerm = e.target.textContent;
-                searchInput.value = searchTerm;
-                handleSearch(searchTerm);
-            }
-        });
-        const mainContentListener = (e) => {
-            const card = e.target.closest('.anime-card');
-            if (card?.dataset.id) {
-                const id = parseInt(card.dataset.id, 10);
-                const type = card.dataset.type || 'ANIME'; // Default to ANIME if not specified
-                handleCardClick({ id, type });
-            }
-        };
-        dashboardView.addEventListener('click', mainContentListener);
-        detailView.addEventListener('click', mainContentListener);
+      async function fetchAndRenderDetails({ id, type }) {
+        if (isNaN(id)) {
+          updateDebugInfo(`Invalid ID: ${id}`, true);
+          return;
+        }
+        showLoader(`Fetching ${type.toLowerCase()} details...`);
+        try {
+          const query = type === "MANGA" ? mangaDetailQuery : animeDetailQuery;
+          const result = await fetchAPI(query, { id });
+          renderDetailView(result.data.Media);
+        } catch (error) {
+          console.error(`Failed to fetch details for ${type} ID ${id}:`, error);
+          goBack();
+        } finally {
+          hideLoader();
+        }
+      }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            let handledDeepLink = false;
-            try {
-                if (window.Telegram?.WebApp) {
-                    Telegram.WebApp.ready();
-                    updateDebugInfo(`✅ TG WebApp Loaded.`);
-                } else {
-                    updateDebugInfo('... Not in Telegram context.');
-                }
-                const urlParams = new URLSearchParams(window.location.search);
-                const animeIdFromUrl = urlParams.get('animeId');
-                updateDebugInfo(`Current URL: ${window.location.href}`, true);
-                if (animeIdFromUrl) {
-                    updateDebugInfo(`✅ Found 'animeId' in URL: ${animeIdFromUrl}`, true);
-                    handleCardClick({ id: parseInt(animeIdFromUrl, 10), type: 'ANIME' }); 
-                    handledDeepLink = true;
-                } else {
-                    updateDebugInfo(`... No 'animeId' param found in URL.`, true);
-                }
-            } catch(e) {
-                 updateDebugInfo(`❌ Error during init: ${e.message}`, true);
-            }
-            if (!handledDeepLink) {
-                 updateDebugInfo(`▶️ Loading homepage.`, true);
-                 initializeHomepage();
-            }
-            renderSearchHistory();
-        });
+      function handleCardClick({ id, type }) {
+        const lastItem = navigationHistory[navigationHistory.length - 1];
+        if (!lastItem || lastItem.id !== id) {
+          navigationHistory.push({ id, type });
+          updateDebugInfo(
+            `Mapsd. History: ${JSON.stringify(navigationHistory)}`,
+            true
+          );
+        }
+        fetchAndRenderDetails({ id, type });
+      }
+
+      function goBack() {
+        navigationHistory.pop();
+
+        if (navigationHistory.length > 0) {
+          const previousItem = navigationHistory[navigationHistory.length - 1];
+          updateDebugInfo(
+            `Going back. History: ${JSON.stringify(navigationHistory)}`,
+            true
+          );
+          fetchAndRenderDetails(previousItem);
+        } else {
+          goHome();
+        }
+      }
+
+      function goHome() {
+        navigationHistory = [];
+        updateDebugInfo("Navigated to Home. History cleared.", true);
+        showDashboard();
+        searchResultsSection.classList.add("hidden");
+        homepageSections.classList.remove("hidden");
+        searchInput.value = "";
+        document.title = "AniPixel - Dashboard";
+      }
+
+      // --- Event Listeners ---
+      searchForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const searchTerm = searchInput.value.trim();
+        if (searchTerm) {
+          goHome();
+          handleSearch(searchTerm);
+        }
+      });
+      searchHistoryContainer.addEventListener("click", (e) => {
+        if (e.target.tagName === "BUTTON") {
+          goHome();
+          const searchTerm = e.target.textContent;
+          searchInput.value = searchTerm;
+          handleSearch(searchTerm);
+        }
+      });
+      const mainContentListener = (e) => {
+        const card = e.target.closest(".anime-card");
+        if (card?.dataset.id) {
+          const id = parseInt(card.dataset.id, 10);
+          const type = card.dataset.type || "ANIME"; // Default to ANIME if not specified
+          handleCardClick({ id, type });
+        }
+      };
+      dashboardView.addEventListener("click", mainContentListener);
+      detailView.addEventListener("click", mainContentListener);
+
+      document.addEventListener("DOMContentLoaded", () => {
+        let handledDeepLink = false;
+        try {
+          if (window.Telegram?.WebApp) {
+            Telegram.WebApp.ready();
+            updateDebugInfo(`✅ TG WebApp Loaded.`);
+          } else {
+            updateDebugInfo("... Not in Telegram context.");
+          }
+          const urlParams = new URLSearchParams(window.location.search);
+          const animeIdFromUrl = urlParams.get("animeId");
+          updateDebugInfo(`Current URL: ${window.location.href}`, true);
+          if (animeIdFromUrl) {
+            updateDebugInfo(
+              `✅ Found 'animeId' in URL: ${animeIdFromUrl}`,
+              true
+            );
+            handleCardClick({
+              id: parseInt(animeIdFromUrl, 10),
+              type: "ANIME",
+            });
+            handledDeepLink = true;
+          } else {
+            updateDebugInfo(`... No 'animeId' param found in URL.`, true);
+          }
+        } catch (e) {
+          updateDebugInfo(`❌ Error during init: ${e.message}`, true);
+        }
+        if (!handledDeepLink) {
+          updateDebugInfo(`▶️ Loading homepage.`, true);
+          initializeHomepage();
+        }
+        renderSearchHistory();
+      });
     </script>
-</body>
+  </body>
 </html>
-

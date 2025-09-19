@@ -1,14 +1,15 @@
 <?php
 
-namespace AniPixel;
-
-use Exception;
-
 /**
  * File: src/AniListAPI.php
  * Description: AniPixel Bot - AniList API Wrapper
  * This class handles all GraphQL requests to the AniList API.
  */
+
+namespace AniPixel;
+
+use Exception;
+
 class AniListAPI {
     private const API_URL = 'https://graphql.anilist.co';
 
@@ -22,6 +23,9 @@ class AniListAPI {
             'trending' => "query (\$page: Int) { Page(page: \$page, perPage: 5) { pageInfo { hasNextPage } media(sort: TRENDING_DESC, type: ANIME, isAdult: false) { ...mediaFields } } } {$list_fragment}",
             'popular' => "query (\$page: Int) { Page(page: \$page, perPage: 5) { pageInfo { hasNextPage } media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) { ...mediaFields } } } {$list_fragment}",
             'romance' => "query (\$page: Int) { Page(page: \$page, perPage: 5) { pageInfo { hasNextPage } media(sort: SCORE_DESC, type: ANIME, genre: \"Romance\", isAdult: false) { ...mediaFields } } } {$list_fragment}",
+            // NEW: Added queries for new categories to match the Mini App
+            'comedy' => "query (\$page: Int) { Page(page: \$page, perPage: 5) { pageInfo { hasNextPage } media(sort: SCORE_DESC, type: ANIME, genre: \"Comedy\", isAdult: false) { ...mediaFields } } } {$list_fragment}",
+            'detective' => "query (\$page: Int) { Page(page: \$page, perPage: 5) { pageInfo { hasNextPage } media(sort: SCORE_DESC, type: ANIME, genre: \"Mystery\", isAdult: false) { ...mediaFields } } } {$list_fragment}",
             'search' => "query (\$page: Int, \$search: String) { Page(page: \$page, perPage: 5) { pageInfo { hasNextPage } media(search: \$search, type: ANIME, isAdult: false) { ...mediaFields } } } {$list_fragment}",
             'detail_anime' => "query (\$id: Int) { Media(id: \$id, type: ANIME) { ...detailFields } } {$detail_fragment}",
             'detail_manga' => "query (\$id: Int) { Media(id: \$id, type: MANGA) { ...detailFields } } {$detail_fragment}",
