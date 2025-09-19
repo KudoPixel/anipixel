@@ -1,15 +1,29 @@
 
 <?php
 
+// THE FIX IS HERE! Use Composer's autoloader to load libraries
+require 'vendor/autoload.php';
+
+// If a .env file exists (for local development), load it.
+if (file_exists(__DIR__ . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->load();
+}
+
 // --- CONFIGURATION ---
-// Put your Bot Token here.
-define('BOT_TOKEN', '8112345924:AAFb7e-WrYKngyeaRzB4-Hl3hKukisR1giI');
+// Read variables from the environment (.env file or server environment variables)
+$botToken = $_ENV['BOT_TOKEN'] ?? 'YOUR_TELEGRAM_BOT_TOKEN'; // Fallback for safety
+$webAppUrl = $_ENV['WEB_APP_URL'] ?? 'https://your-app.onrender.com/anime_spa.html';
 
-// Put the full URL to your Mini App HTML file on Render.com here.
-// IMPORTANT: Make sure this is the correct public URL.
-define('WEB_APP_URL', 'https://anipixel.onrender.com/index.html');
+// Check if the variables are set
+if ($botToken === 'YOUR_TELEGRAM_BOT_TOKEN' || empty($botToken)) {
+    // In a real app, you'd log this error instead of echoing.
+    // This stops the script if the token isn't configured.
+    die('Error: BOT_TOKEN is not configured.');
+}
 
-define('API_URL', 'https://api.telegram.org/bot' . BOT_TOKEN . '/');
+define('API_URL', 'https://api.telegram.org/bot' . $botToken . '/');
+define('WEB_APP_URL', $webAppUrl);
 define('ANILIST_API_URL', 'https://graphql.anilist.co');
 
 // --- MAIN LOGIC ---
@@ -70,18 +84,16 @@ function handleCallbackQuery($callback_query) {
     $parts = explode('_', $data);
     $type = $parts[0];
 
-    if (count($parts) > 1 && is_numeric($parts[1])) {
-        // This is a pagination or anime detail request
-        $id_or_page = (int)$parts[1];
+    if ($type === 'anime' && count($parts) > 1 && is_numeric($parts[1])) {
+        // User wants to see the detail card for an anime
+        $anime_id = (int)$parts[1];
+        sendAnimeDetailCard($chat_id, $anime_id);
 
-        if ($type === 'anime') {
-            // User wants to see the detail card for an anime
-            sendAnimeDetailCard($chat_id, $id_or_page);
-        } else {
-            // User is clicking a "Next" or "Prev" button for a list
-            $search_query = count($parts) > 2 ? implode('_', array_slice($parts, 2)) : null;
-            updateAnimeList($chat_id, $message_id, $type, $id_or_page, $search_query);
-        }
+    } elseif (count($parts) >= 2 && is_numeric($parts[1])) {
+        // User is clicking a "Next" or "Prev" button for a list
+        $page = (int)$parts[1];
+        $search_query = count($parts) > 2 ? implode('_', array_slice($parts, 2)) : null;
+        updateAnimeList($chat_id, $message_id, $type, $page, $search_query);
     }
 }
 
@@ -143,12 +155,17 @@ function sendAnimeDetailCard($chat_id, $anime_id) {
     $photo_url = $anime_data['coverImage']['extraLarge'];
     $genres = implode(', ', $anime_data['genres']);
     $score = $anime_data['averageScore'] ? $anime_data['averageScore'] . '%' : 'N/A';
+    
+    // This is the standard way to pass a deep link parameter.
+    $start_param = $anime_id;
 
     $caption = "🎬 *{$title}*\n\n*Genre:* {$genres}\n*Score:* {$score}";
 
+    // Telegram reads the 'startapp' query param and makes it available
+    // in the Mini App via `initDataUnsafe.start_param`.
     $keyboard = [
         [
-            ['text' => '🚀 View in Mini App', 'web_app' => ['url' => WEB_APP_URL . '#anime-' . $anime_id]]
+             ['text' => '🚀 View in Mini App', 'web_app' => ['url' => WEB_APP_URL . '?startapp=' . $start_param]]
         ]
     ];
 

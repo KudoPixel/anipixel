@@ -1,0 +1,5 @@
+# Secret keys and environment variables
+.env
+
+# Composer dependencies
+/vendor

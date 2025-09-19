@@ -473,7 +473,7 @@
             try {
                 if (window.Telegram && window.Telegram.WebApp) {
                     Telegram.WebApp.ready();
-                    updateDebugInfo(`TG WebApp Loaded. Hash: ${window.location.hash}`);
+                    updateDebugInfo(`TG WebApp Loaded.`);
                     
                     const startParam = Telegram.WebApp.initDataUnsafe?.start_param;
                     updateDebugInfo(`Start Param: ${startParam || 'Not found'}`);
