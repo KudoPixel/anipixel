@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anime Explorer - The Ultimate SPA</title>
+    <!-- THE FIRST FIX IS HERE: Telegram Mini App Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -432,7 +434,7 @@
             e.preventDefault();
             const searchTerm = searchInput.value.trim();
             if (searchTerm) handleSearch(searchTerm);
-        });
+});
 
         searchHistoryContainer.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') {
@@ -453,24 +455,21 @@
         dashboardView.addEventListener('click', mainContentListener);
         detailView.addEventListener('click', mainContentListener); // Listen on detail view too for relations
 
+        // THE SECOND FIX IS HERE! Smart Mini App initialization
         document.addEventListener('DOMContentLoaded', () => {
-            // --- MINI APP LOGIC ---
-            // Check if we are inside Telegram and if there's a hash
             if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.ready(); // Inform Telegram the app is ready
-                
-                const hash = window.location.hash;
-                if (hash && hash.startsWith('#anime-')) {
-                    const animeId = parseInt(hash.substring(7));
+                window.Telegram.WebApp.ready();
+                const hash = window.Telegram.WebApp.initDataUnsafe?.start_param; // More reliable way to get start param
+                if (hash && hash.startsWith('anime-')) {
+                    const animeId = parseInt(hash.substring(6));
                     if (!isNaN(animeId)) {
-                        // If an ID is found in the URL, skip the homepage and load the detail view directly
                         handleCardClick(animeId);
-                        return; // Stop further execution
+                        return;
                     }
                 }
             }
             
-            // If not in Mini App mode or no ID is found, load the homepage
+            // Fallback for browser or if no start_param
             initializeHomepage();
             renderSearchHistory();
         });
