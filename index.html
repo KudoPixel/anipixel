@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anime Explorer - The Ultimate SPA</title>
-    <!-- THE FIRST FIX IS HERE: Telegram Mini App Script -->
+    <!-- Telegram Mini App Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -67,6 +67,12 @@
     </style>
 </head>
 <body class="text-gray-200">
+    
+    <!-- DEBUG PANE -->
+    <div id="debug-pane" class="hidden fixed bottom-0 left-0 bg-black bg-opacity-80 text-white text-xs p-2 z-50 rounded-tr-lg">
+        <p><strong>Debug Info:</strong></p>
+        <p id="debug-info">Initializing...</p>
+    </div>
 
     <!-- Header with Search Bar -->
     <header class="bg-gray-800 sticky top-0 z-40 shadow-lg">
@@ -134,6 +140,8 @@
         const homepageSections = document.getElementById('homepage-sections');
 
         const detailView = document.getElementById('detail-view');
+        const debugPane = document.getElementById('debug-pane');
+        const debugInfo = document.getElementById('debug-info');
 
         const STORAGE_KEY = 'animeSearchHistory';
 
@@ -157,6 +165,11 @@
         function showDetailView() {
             dashboardView.classList.add('hidden');
             detailView.classList.remove('hidden');
+        }
+        
+        function updateDebugInfo(text) {
+             debugPane.classList.remove('hidden');
+             debugInfo.textContent = text;
         }
 
         // --- LocalStorage ---
@@ -457,16 +470,27 @@
 
         // THE SECOND FIX IS HERE! Smart Mini App initialization
         document.addEventListener('DOMContentLoaded', () => {
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.ready();
-                const hash = window.Telegram.WebApp.initDataUnsafe?.start_param; // More reliable way to get start param
-                if (hash && hash.startsWith('anime-')) {
-                    const animeId = parseInt(hash.substring(6));
-                    if (!isNaN(animeId)) {
-                        handleCardClick(animeId);
-                        return;
+            try {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    Telegram.WebApp.ready();
+                    updateDebugInfo(`TG WebApp Loaded. Hash: ${window.location.hash}`);
+                    
+                    const startParam = Telegram.WebApp.initDataUnsafe?.start_param;
+                    updateDebugInfo(`Start Param: ${startParam || 'Not found'}`);
+                    
+                    if (startParam) {
+                        const animeId = parseInt(startParam);
+                        if (!isNaN(animeId)) {
+                             updateDebugInfo(`Found Anime ID: ${animeId}. Fetching details...`);
+                            handleCardClick(animeId);
+                            return;
+                        }
                     }
+                } else {
+                     updateDebugInfo('Not in Telegram context.');
                 }
+            } catch(e) {
+                 updateDebugInfo(`Error: ${e.message}`);
             }
             
             // Fallback for browser or if no start_param
