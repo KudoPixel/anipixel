@@ -3,7 +3,15 @@
 # This is a great lightweight choice for simple PHP apps.
 FROM php:8.2-apache
 
-# The PHP script needs the 'curl' extension to talk to the AniList API.
+# FIX: First, install the system dependencies required for the PHP extensions.
+# The 'curl' extension needs the 'libcurl' development library.
+# We update the package list and install it.
+RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# Now that the system dependency is in place, we can install the PHP extension.
 # This command installs and enables it.
 RUN docker-php-ext-install curl
 
@@ -14,3 +22,4 @@ COPY bot.php /var/www/html/index.php
 
 # Apache listens on port 80 by default, so we expose it.
 EXPOSE 80
+
