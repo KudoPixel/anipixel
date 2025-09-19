@@ -15,10 +15,9 @@ RUN apt-get update && apt-get install -y \
 # This command installs and enables it.
 RUN docker-php-ext-install curl
 
-# Copy the bot script into the web server's root directory.
-# We rename it to index.php so Apache serves it by default.
-# This makes deployment on services like Render much easier.
-COPY bot.php /var/www/html/index.php
+# THE FIX IS HERE! Copy all files from the current directory into the container.
+# This ensures both the bot.php and the anime_homepage.html (Mini App) are available.
+COPY . /var/www/html/
 
 # Apache listens on port 80 by default, so we expose it.
 EXPOSE 80
